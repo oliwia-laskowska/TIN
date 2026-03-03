@@ -1,0 +1,40 @@
+@media (max-width: 880px){
+  .layout{
+    height: 100%;
+    border-radius: 0;
+  }
+  .page-wrap{ padding: 0; }
+
+  :root{ --sidebar-w: 230px; }
+
+  .intro{ grid-template-columns: 1fr; }
+  .grid-2{ grid-template-columns: 1fr; }
+  .btn-row{ grid-template-columns: 1fr; }
+  .footer-grid{ grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px){
+  .appbar{
+    flex-direction: column;
+    height: auto;
+  }
+  .appbar-left, .appbar-right{
+    width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .belowbar{
+    flex-direction: column;
+  }
+
+  .sidebar{
+    width: 100%;
+    flex: 0 0 auto;
+    height: auto;
+    overflow: visible;
+  }
+
+  .scroller{
+    overflow: auto;
+  }
+}
