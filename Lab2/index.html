@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Responsywna strona</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="#start" class="logo" aria-label="Logo RWD">Logo RWD</a>
+
+        <input type="checkbox" id="nav-toggle" class="nav-toggle" />
+        <label for="nav-toggle" class="hamburger" aria-label="Otwórz menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
+
+        <nav class="site-nav" aria-label="Menu główne">
+          <a href="#start">Strona główna</a>
+          <a href="#o-nas">O nas</a>
+          <a href="#oferta">Oferta</a>
+          <a href="#kontakt">Kontakt</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container" id="start">
+      <section class="intro-banner">
+        <h1>Widok responsywny</h1>
+        <p class="breakpoint-label breakpoint-desktop">Widok dla dużych ekranów (&gt;992px)</p>
+        <p class="breakpoint-label breakpoint-medium">Widok dla średnich ekranów (768-992px)</p>
+        <p class="breakpoint-label breakpoint-tablet">Widok dla tabletów (576-768px)</p>
+        <p class="breakpoint-label breakpoint-mobile">Widok dla telefonów (&lt;576px)</p>
+      </section>
+
+      <section class="cards-section">
+        <article class="card" id="o-nas">
+          <h2>Element 1</h2>
+          <div class="card-content">
+            <p>
+              Lorem Ipsum to po prostu tekst stosowany jako przykładowy wypełniacz w przemyśle poligraficznym i składzie tekstu. 
+              Jest on standardowym tekstem stosowanym w przemyśle drukarskim od XVI wieku, kiedy nieznany drukarz pomieszał czcionki z tekstem, tworząc próbkę czcionek. 
+              Przetrwał nie tylko pięć wieków, ale także skok do elektronicznego składu tekstu, pozostając zasadniczo niezmieniony. 
+              Spopularyzował się w latach 60. XX wieku wraz z publikacją arkuszy Letrasetu zawierających fragmenty Lorem Ipsum, a ostatnio z oprogramowaniem do składu komputerowego, takim jak Aldus PageMaker, zawierającym różne wersje Lorem Ipsum.
+            </p>
+            <a href="#oferta" class="btn">Dowiedz się więcej</a>
+          </div>
+        </article>
+
+        <article class="card" id="oferta">
+          <h2>Element 2</h2>
+          <div class="card-content">
+            <div class="gallery">
+              <figure class="gallery-item">
+                <img
+                  src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80"
+                  alt="Stanowisko pracy programisty"
+                />
+              </figure>
+              <figure class="gallery-item">
+                <img
+                  src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80"
+                  alt="Projektowanie interfejsu na laptopie"
+                />
+              </figure>
+              <figure class="gallery-item">
+                <img
+                  src="https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=900&q=80"
+                  alt="Widok strony na różnych urządzeniach"
+                />
+              </figure>
+              <figure class="gallery-item">
+                <img
+                  src="https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?auto=format&fit=crop&w=900&q=80"
+                  alt="Nowoczesne urządzenia mobilne"
+                />
+              </figure>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" id="kontakt">
+          <h2>Element 3</h2>
+          <div class="card-content">
+            <p>
+              Powszechnie wiadomo, że czytelna treść strony rozprasza czytelnika, gdy ten patrzy na jej układ. 
+              Istotą stosowania Lorem Ipsum jest mniej więcej normalny rozkład liter, w przeciwieństwie do stosowania formuły „Treść tutaj, treść tutaj”, która sprawia wrażenie czytelnego tekstu angielskiego. 
+              Wiele programów do składu komputerowego i edytorów stron internetowych używa obecnie Lorem Ipsum jako domyślnego tekstu modelowego, a wyszukiwanie hasła „lorem ipsum” pozwoli znaleźć wiele stron internetowych, które wciąż są w powijakach. 
+              Różne wersje ewoluowały na przestrzeni lat, czasami przypadkowo, a czasami celowo (wtrącenia humoru itp.).
+            </p>
+            <a href="#start" class="btn">Sprawdź przykłady</a>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>&copy; 2026  Responsywna Strona Internetowa</p>
+      </div>
+    </footer>
+  </body>
+</html>
