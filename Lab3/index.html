@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechWave – Strona główna</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page-wrap">
+    <div class="layout">
+      <aside class="sidebar">
+        <a class="brand" href="#home" aria-label="TechWave - strona główna">
+          <span class="brand__logo">TechWave</span>
+        </a>
+
+        <nav class="sidebar-nav" aria-label="Nawigacja główna">
+          <ul class="navigation">
+            <li>
+              <a class="main" href="#home">Strona główna</a>
+            </li>
+            <li>
+              <a class="main" href="#services">Usługi</a>
+              <ul class="submenu">
+                <li><a href="#web-design">Web Design</a></li>
+                <li><a href="#mobile-apps">Mobile Apps</a></li>
+                <li><a href="#cloud">Cloud</a></li>
+              </ul>
+            </li>
+            <li>
+              <a class="main" href="#contact">Kontakt</a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <div class="scroller">
+        <main class="content">
+          <section class="hero" id="home">
+            <div class="hero__content">
+              <h1>Tworzymy cyfrową przyszłość</h1>
+              <p>
+                TechWave to nowoczesna firma technologiczna specjalizująca się w tworzeniu
+                aplikacji webowych, mobilnych i rozwiązań chmurowych dla firm każdej wielkości.
+              </p>
+              <a href="#services" class="btn">Dowiedz się więcej</a>
+            </div>
+          </section>
+
+          <section class="stats section" aria-labelledby="stats-title">
+            <h2 class="section-title" id="stats-title">TechWave w liczbach</h2>
+            <div class="stats-grid">
+              <article class="stat-box">
+                <strong>150+</strong>
+                <span>Zadowolonych klientów</span>
+              </article>
+              <article class="stat-box">
+                <strong>320</strong>
+                <span>Zrealizowanych projektów</span>
+              </article>
+              <article class="stat-box">
+                <strong>8</strong>
+                <span>Lat doświadczenia</span>
+              </article>
+              <article class="stat-box">
+                <strong>12</strong>
+                <span>Krajów na świecie</span>
+              </article>
+            </div>
+          </section>
+
+          <section class="services section" id="services" aria-labelledby="services-title">
+            <h2 class="section-title" id="services-title">Nasze usługi</h2>
+            <div class="services-grid">
+              <article class="card card--web" id="web-design">
+                <div class="card-icon">W</div>
+                <h3>Web Design</h3>
+                <p>
+                  Projektujemy nowoczesne, responsywne strony internetowe dopasowane do
+                  Twoich potrzeb i marki.
+                </p>
+              </article>
+
+              <article class="card card--mobile" id="mobile-apps">
+                <div class="card-icon">M</div>
+                <h3>Mobile Apps</h3>
+                <p>
+                  Tworzymy natywne i hybrydowe aplikacje mobilne na systemy iOS oraz Android.
+                </p>
+              </article>
+
+              <article class="card card--cloud" id="cloud">
+                <div class="card-icon">C</div>
+                <h3>Cloud</h3>
+                <p>
+                  Wdrażamy i zarządzamy infrastrukturą chmurową, zapewniając skalowalność i
+                  bezpieczeństwo.
+                </p>
+              </article>
+            </div>
+          </section>
+
+          <section class="contact section" id="contact" aria-labelledby="contact-title">
+            <h2 class="section-title" id="contact-title">Skontaktuj się z nami</h2>
+            <form class="contact-form" action="mailto:lasek0342@gmail.com" method="POST" enctype="text/plain">
+              <label for="fullname">Imię i nazwisko</label>
+              <input id="fullname" type="text" name="fullname" placeholder="Jan Kowalski">
+
+              <label for="email">Adres e-mail</label>
+              <input id="email" type="email" name="email" placeholder="jan@example.com">
+
+              <label for="message">Wiadomość</label>
+              <textarea id="message" name="message" rows="6" placeholder="Opisz swój projekt..."></textarea>
+
+              <button type="submit" class="btn btn--submit">Wyślij wiadomość</button>
+            </form>
+          </section>
+        </main>
+
+        <footer class="site-footer">
+          <div class="footer-grid">
+            <div>
+              <h3>TechWave</h3>
+              <p>Nowoczesne rozwiązania technologiczne dla Twojego biznesu.</p>
+              <p>© 2026 TechWave Sp. z o.o.</p>
+            </div>
+            <div>
+              <h3>Usługi</h3>
+              <ul>
+                <li><a href="#web-design">Web Design</a></li>
+                <li><a href="#mobile-apps">Mobile Apps</a></li>
+                <li><a href="#cloud">Cloud</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3>Kontakt</h3>
+              <p><a href="mailto:kontakt@techwave.pl">kontakt@techwave.pl</a></p>
+<p><a href="tel:+48123456789">+48 123 456 789</a></p>
+<p><a href="https://maps.google.com/?q=ul.+Cyfrowa+1,+Warszawa" target="_blank">
+  ul. Cyfrowa 1, Warszawa
+</a></p>
+            </div>
+          </div>
+          <div class="copyright">© 2026 TechWave – Wszelkie prawa zastrzeżone</div>
+        </footer>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
