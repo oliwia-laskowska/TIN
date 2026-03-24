@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pl" x-data="{ dark: false, mobileMenu: false }" :class="{ 'dark': dark }">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TechWave – Strona główna</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
+  <header class="sticky top-0 z-50 border-b border-gray-200/70 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-900/90">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <a href="#home" class="text-2xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">TechWave</a>
+
+      <nav class="hidden items-center gap-8 md:flex">
+        <a href="#home" class="font-medium text-gray-700 transition-colors hover:text-indigo-600 dark:text-gray-200 dark:hover:text-indigo-400">Strona główna</a>
+        <a href="#services" class="font-medium text-gray-700 transition-colors hover:text-indigo-600 dark:text-gray-200 dark:hover:text-indigo-400">Usługi</a>
+        <a href="#testimonials" class="font-medium text-gray-700 transition-colors hover:text-indigo-600 dark:text-gray-200 dark:hover:text-indigo-400">Opinie</a>
+        <a href="#contact" class="font-medium text-gray-700 transition-colors hover:text-indigo-600 dark:text-gray-200 dark:hover:text-indigo-400">Kontakt</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          @click="dark = !dark"
+          class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 text-xl transition hover:scale-105 hover:border-indigo-300 hover:text-indigo-600 dark:border-gray-700 dark:text-gray-100 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
+          :aria-label="dark ? 'Włącz tryb jasny' : 'Włącz tryb ciemny'"
+        >
+          <span x-text="dark ? '☀️' : '🌙'"></span>
+        </button>
+
+        <a href="#contact" class="hidden rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-indigo-700 md:inline-flex">Wycena</a>
+
+        <button
+          type="button"
+          @click="mobileMenu = !mobileMenu"
+          class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 text-gray-700 transition hover:border-indigo-300 hover:text-indigo-600 md:hidden dark:border-gray-700 dark:text-gray-100 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
+          aria-label="Otwórz menu"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div
+      x-show="mobileMenu"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0 -translate-y-2"
+      x-transition:enter-end="opacity-100 translate-y-0"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100 translate-y-0"
+      x-transition:leave-end="opacity-0 -translate-y-2"
+      class="border-t border-gray-200 bg-white px-4 py-4 md:hidden dark:border-gray-800 dark:bg-gray-900"
+    >
+      <nav class="flex flex-col gap-3">
+        <a @click="mobileMenu = false" href="#home" class="rounded-lg px-3 py-2 font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-600 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-indigo-400">Strona główna</a>
+        <a @click="mobileMenu = false" href="#services" class="rounded-lg px-3 py-2 font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-600 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-indigo-400">Usługi</a>
+        <a @click="mobileMenu = false" href="#testimonials" class="rounded-lg px-3 py-2 font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-600 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-indigo-400">Opinie</a>
+        <a @click="mobileMenu = false" href="#contact" class="rounded-lg px-3 py-2 font-medium text-gray-700 transition hover:bg-indigo-50 hover:text-indigo-600 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-indigo-400">Kontakt</a>
+        <a @click="mobileMenu = false" href="#contact" class="mt-2 inline-flex justify-center rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700">Wycena</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="bg-gradient-to-r from-indigo-600 to-violet-600 text-white">
+      <div class="mx-auto grid min-h-[calc(100vh-80px)] max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8">
+        <div>
+          <span class="inline-flex rounded-full bg-white/15 px-5 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-indigo-100 ring-1 ring-white/20">Agencja technologiczna</span>
+          <h1 class="mt-6 max-w-xl text-4xl font-extrabold leading-tight md:text-6xl">Tworzymy cyfrową przyszłość</h1>
+          <p class="mt-6 max-w-2xl text-lg leading-8 text-indigo-50 md:text-2xl md:leading-10">Projektujemy nowoczesne strony internetowe, aplikacje mobilne i rozwiązania chmurowe, które napędzają rozwój Twojego biznesu.</p>
+          <div class="mt-10 flex flex-col gap-4 sm:flex-row">
+            <a href="#services" class="inline-flex items-center justify-center rounded-2xl bg-white px-8 py-4 text-lg font-semibold text-indigo-600 shadow-lg transition duration-300 hover:-translate-y-1 hover:bg-indigo-50">Dowiedz się więcej</a>
+            <a href="#contact" class="inline-flex items-center justify-center rounded-2xl border border-white/80 px-8 py-4 text-lg font-semibold text-white transition duration-300 hover:-translate-y-1 hover:bg-white/10">Skontaktuj się</a>
+          </div>
+        </div>
+
+        <div class="hidden md:block">
+          <div class="rounded-[2rem] border border-white/20 bg-gradient-to-br from-white/20 to-white/5 p-10 shadow-2xl backdrop-blur-sm">
+            <div class="flex min-h-[380px] flex-col items-center justify-center rounded-[1.75rem] border border-white/10 bg-gradient-to-br from-violet-400/30 to-indigo-400/20 text-center">
+              <div class="text-7xl font-extrabold tracking-tight">TW</div>
+              <p class="mt-4 text-2xl font-medium text-indigo-100">Tech · Wave · Innovation</p>
+              <div class="mt-8 flex flex-wrap justify-center gap-3 text-sm font-semibold">
+                <span class="rounded-full bg-white/15 px-4 py-2">Web</span>
+                <span class="rounded-full bg-white/15 px-4 py-2">Mobile</span>
+                <span class="rounded-full bg-white/15 px-4 py-2">Cloud</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-gray-100 py-16 dark:bg-gray-900/60">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 gap-6 md:grid-cols-4">
+          <article class="rounded-2xl bg-white p-6 text-center shadow-sm dark:bg-gray-800">
+            <div class="text-5xl font-extrabold text-indigo-600 dark:text-indigo-400">150+</div>
+            <p class="mt-3 text-lg text-gray-500 dark:text-gray-400">Zadowolonych klientów</p>
+          </article>
+          <article class="rounded-2xl bg-white p-6 text-center shadow-sm dark:bg-gray-800">
+            <div class="text-5xl font-extrabold text-indigo-600 dark:text-indigo-400">320</div>
+            <p class="mt-3 text-lg text-gray-500 dark:text-gray-400">Zrealizowanych projektów</p>
+          </article>
+          <article class="rounded-2xl bg-white p-6 text-center shadow-sm dark:bg-gray-800">
+            <div class="text-5xl font-extrabold text-indigo-600 dark:text-indigo-400">8</div>
+            <p class="mt-3 text-lg text-gray-500 dark:text-gray-400">Lat doświadczenia</p>
+          </article>
+          <article class="rounded-2xl bg-white p-6 text-center shadow-sm dark:bg-gray-800">
+            <div class="text-5xl font-extrabold text-indigo-600 dark:text-indigo-400">12</div>
+            <p class="mt-3 text-lg text-gray-500 dark:text-gray-400">Krajów na świecie</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="services" class="bg-white py-24 dark:bg-gray-950">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <p class="text-sm font-bold uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">Co robimy</p>
+          <h2 class="mt-4 text-4xl font-extrabold text-gray-900 dark:text-white md:text-5xl">Nasze usługi</h2>
+          <p class="mt-6 text-xl leading-8 text-gray-500 dark:text-gray-400">Oferujemy kompleksowe rozwiązania technologiczne dostosowane do potrzeb każdego biznesu.</p>
+        </div>
+
+        <div class="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3">
+          <article class="rounded-3xl border border-gray-200 bg-white p-10 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+            <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-100 text-3xl font-bold text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400">W</div>
+            <h3 class="mt-8 text-2xl font-extrabold text-gray-900 dark:text-white">Web Design</h3>
+            <p class="mt-5 text-lg leading-8 text-gray-500 dark:text-gray-400">Tworzymy nowoczesne, responsywne strony internetowe i aplikacje webowe, które przyciągają uwagę i konwertują odwiedzających w klientów.</p>
+            <ul class="mt-8 space-y-2 text-lg text-gray-600 dark:text-gray-300">
+              <li class="flex items-start gap-3"><span class="text-indigo-600 dark:text-indigo-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg></span><span>Responsywny design (RWD)</span></li>
+              <li class="flex items-start gap-3"><span class="text-indigo-600 dark:text-indigo-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg></span><span>Optymalizacja SEO</span></li>
+              <li class="flex items-start gap-3"><span class="text-indigo-600 dark:text-indigo-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg></span><span>Wysoka wydajność i Core Web Vitals</span></li>
+            </ul>
+          </article>
+
+          <article class="rounded-3xl border border-gray-200 bg-white p-10 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+            <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-3xl font-bold text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">M</div>
+            <h3 class="mt-8 text-2xl font-extrabold text-gray-900 dark:text-white">Mobile Apps</h3>
+            <p class="mt-5 text-lg leading-8 text-gray-500 dark:text-gray-400">Projektujemy i wdrażamy natywne oraz hybrydowe aplikacje mobilne na iOS i Android, które zapewniają doskonałe doświadczenie użytkownika.</p>
+            <ul class="mt-8 space-y-2 text-lg text-gray-600 dark:text-gray-300">
+              <li class="flex items-start gap-3"><span class="text-emerald-600 dark:text-emerald-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg></span><span>iOS i Android</span></li>
+              <li class="flex items-start gap-3"><span class="text-emerald-600 dark:text-emerald-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg></span><span>React Native i Flutter</span></li>
+              <li class="flex items-start gap-3"><span class="text-emerald-600 dark:text-emerald-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg></span><span>Integracja z API i powiadomienia push</span></li>
+            </ul>
+          </article>
+
+          <article class="rounded-3xl border border-gray-200 bg-white p-10 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
+            <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100 text-3xl font-bold text-violet-600 dark:bg-violet-500/20 dark:text-violet-400">C</div>
+            <h3 class="mt-8 text-2xl font-extrabold text-gray-900 dark:text-white">Cloud</h3>
+            <p class="mt-5 text-lg leading-8 text-gray-500 dark:text-gray-400">Przenosimy infrastrukturę Twojej firmy do chmury, zapewniając skalowalność, niezawodność i bezpieczeństwo danych w każdych warunkach.</p>
+            <ul class="mt-8 space-y-2 text-lg text-gray-600 dark:text-gray-300">
+              <li class="flex items-start gap-3"><span class="text-violet-600 dark:text-violet-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg></span><span>AWS, Azure i GCP</span></li>
+              <li class="flex items-start gap-3"><span class="text-violet-600 dark:text-violet-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg></span><span>Automatyczne skalowanie i backup</span></li>
+              <li class="flex items-start gap-3"><span class="text-violet-600 dark:text-violet-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg></span><span>Monitoring 24/7 i disaster recovery</span></li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="testimonials" class="bg-gray-50 py-24 dark:bg-gray-900">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <p class="text-sm font-bold uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">Opinie</p>
+          <h2 class="mt-4 text-4xl font-extrabold text-gray-900 dark:text-white md:text-5xl">Co mówią nasi klienci</h2>
+          <p class="mt-6 text-xl leading-8 text-gray-500 dark:text-gray-400">Zaufało nam ponad 150 firm. Oto kilka słów od tych, z którymi mieliśmy przyjemność współpracować.</p>
+        </div>
+
+        <div class="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3">
+          <article class="rounded-3xl bg-white p-8 shadow-sm dark:bg-gray-800">
+            <div class="text-amber-400">★★★★★</div>
+            <p class="mt-6 text-lg italic leading-8 text-gray-600 dark:text-gray-300">„TechWave zbudowało dla nas stronę internetową, która dosłownie zmieniła nasze wyniki sprzedażowe. Responsywny design i błyskawiczne ładowanie sprawiły, że czas spędzany przez użytkowników na stronie wzrósł o 60%.”</p>
+            <div class="mt-8 flex items-center gap-4">
+              <div class="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 text-lg font-bold text-white">AK</div>
+              <div>
+                <div class="font-bold text-gray-900 dark:text-white">Anna Kowalska</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">CEO, BrandBoost Sp. z o.o.</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="rounded-3xl bg-white p-8 shadow-sm dark:bg-gray-800">
+            <div class="text-amber-400">★★★★★</div>
+            <p class="mt-6 text-lg italic leading-8 text-gray-600 dark:text-gray-300">„Aplikacja mobilna dostarczona przez TechWave przekroczyła nasze oczekiwania. Działanie na iOS i Androidzie jest bezbłędne, a integracja z naszym CRM odbyła się sprawnie i bez przestojów.”</p>
+            <div class="mt-8 flex items-center gap-4">
+              <div class="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 text-lg font-bold text-white">MN</div>
+              <div>
+                <div class="font-bold text-gray-900 dark:text-white">Marek Nowak</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">CTO, LogiTrack S.A.</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="rounded-3xl bg-white p-8 shadow-sm dark:bg-gray-800">
+            <div class="text-amber-400">★★★★★</div>
+            <p class="mt-6 text-lg italic leading-8 text-gray-600 dark:text-gray-300">„Migracja do chmury AWS z pomocą TechWave przebiegła bez ani jednej godziny przestoju. Koszty utrzymania infrastruktury spadły o 40%, a monitoring 24/7 daje nam pełen spokój działania.”</p>
+            <div class="mt-8 flex items-center gap-4">
+              <div class="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 text-lg font-bold text-white">KW</div>
+              <div>
+                <div class="font-bold text-gray-900 dark:text-white">Katarzyna Wiśniewska</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">Head of IT, FinCore Group</div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="bg-white py-24 dark:bg-gray-950">
+      <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+          <p class="text-sm font-bold uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">Kontakt</p>
+          <h2 class="mt-4 text-4xl font-extrabold text-gray-900 dark:text-white md:text-6xl">Skontaktuj się z nami</h2>
+          <p class="mx-auto mt-6 max-w-3xl text-xl leading-8 text-gray-500 dark:text-gray-400">Masz pytania lub chcesz otrzymać wycenę? Wypełnij formularz – odpiszemy w ciągu 24 godzin.</p>
+        </div>
+
+        <form class="mx-auto mt-14 max-w-2xl rounded-2xl bg-white p-10 shadow-md dark:bg-gray-800" action="mailto:kontakt@techwave.pl" method="POST" enctype="text/plain">
+          <div class="space-y-6">
+            <div>
+              <label for="fullname" class="mb-3 block text-lg font-semibold text-gray-800 dark:text-gray-100">Imię i nazwisko</label>
+              <input id="fullname" name="fullname" type="text" placeholder="Jan Kowalski" class="w-full rounded-xl border border-gray-300 bg-white px-5 py-4 text-lg text-gray-800 outline-none transition focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400" />
+            </div>
+            <div>
+              <label for="email" class="mb-3 block text-lg font-semibold text-gray-800 dark:text-gray-100">Adres e-mail</label>
+              <input id="email" name="email" type="email" placeholder="jan@firma.pl" class="w-full rounded-xl border border-gray-300 bg-white px-5 py-4 text-lg text-gray-800 outline-none transition focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400" />
+            </div>
+            <div>
+              <label for="message" class="mb-3 block text-lg font-semibold text-gray-800 dark:text-gray-100">Wiadomość</label>
+              <textarea id="message" name="message" rows="6" placeholder="Opisz swój projekt lub zadaj pytanie..." class="w-full rounded-xl border border-gray-300 bg-white px-5 py-4 text-lg text-gray-800 outline-none transition focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"></textarea>
+            </div>
+            <button type="submit" class="w-full rounded-xl bg-indigo-600 px-6 py-4 text-xl font-semibold text-white transition-colors hover:bg-indigo-700">Wyślij wiadomość</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-gray-900 text-gray-300">
+    <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 gap-12 md:grid-cols-3">
+        <div>
+          <a href="#home" class="text-4xl font-extrabold text-white">Tech<span class="text-violet-400">Wave</span></a>
+          <p class="mt-6 max-w-md text-lg leading-8 text-gray-400">Agencja technologiczna specjalizująca się w tworzeniu nowoczesnych rozwiązań cyfrowych. Pomagamy firmom rosnąć w erze technologii.</p>
+          <p class="mt-8 text-gray-500">© 2026 TechWave. Wszelkie prawa zastrzeżone.</p>
+        </div>
+
+        <div>
+          <h3 class="text-2xl font-bold uppercase tracking-[0.2em] text-white">Usługi</h3>
+          <ul class="mt-6 space-y-4 text-lg">
+            <li><a href="#services" class="transition-colors hover:text-white">Web Design</a></li>
+            <li><a href="#services" class="transition-colors hover:text-white">Mobile Apps</a></li>
+            <li><a href="#services" class="transition-colors hover:text-white">Cloud Solutions</a></li>
+            <li><a href="#contact" class="transition-colors hover:text-white">Wycena projektu</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-2xl font-bold uppercase tracking-[0.2em] text-white">Kontakt</h3>
+          <div class="mt-6 space-y-5 text-lg">
+            <a href="mailto:kontakt@techwave.pl" class="flex items-start gap-4 transition-colors hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" class="mt-1 h-6 w-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 7.5v9A2.25 2.25 0 0 1 19.5 18.75h-15A2.25 2.25 0 0 1 2.25 16.5v-9m19.5 0A2.25 2.25 0 0 0 19.5 5.25h-15A2.25 2.25 0 0 0 2.25 7.5m19.5 0-9.22 6.14a1 1 0 0 1-1.1 0L2.25 7.5" />
+              </svg>
+              <span>kontakt@techwave.pl</span>
+            </a>
+            <a href="tel:+48123456789" class="flex items-start gap-4 transition-colors hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" class="mt-1 h-6 w-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 4.5A2.25 2.25 0 0 1 4.5 2.25h2.118c.967 0 1.805.69 1.993 1.639l.383 1.916a2.25 2.25 0 0 1-.56 2.01l-1.267 1.267a15.728 15.728 0 0 0 7.75 7.75l1.267-1.267a2.25 2.25 0 0 1 2.01-.56l1.916.383a2.25 2.25 0 0 1 1.639 1.993V19.5a2.25 2.25 0 0 1-2.25 2.25h-.75C10.178 21.75 2.25 13.822 2.25 4.5v0Z" />
+              </svg>
+              <span>+48 123 456 789</span>
+            </a>
+            <a href="https://maps.google.com/?q=ul.+Innowacyjna+42,+00-001+Warszawa" target="_blank" rel="noreferrer" class="flex items-start gap-4 transition-colors hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" class="mt-1 h-6 w-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s6.75-5.625 6.75-11.25a6.75 6.75 0 1 0-13.5 0C5.25 15.375 12 21 12 21Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 12.75a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+              </svg>
+              <span>ul. Innowacyjna 42<br />00-001 Warszawa, Polska</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-12 border-t border-gray-700 pt-8 text-center text-sm text-gray-500">
+        Zaprojektowane i zrealizowane przez <span class="font-semibold text-violet-400">TechWave</span> · Wszelkie prawa zastrzeżone © 2026
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
