@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edytor grafiki pikselowej</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #e8eef8, #f7f4ec);
+      color: #1f2937;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 32px;
+    }
+
+    .app {
+      width: min(760px, 100%);
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 20px 45px rgba(31, 41, 55, 0.16);
+      padding: 28px;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      text-align: center;
+      font-size: 28px;
+      color: #111827;
+    }
+
+    #toolbar,
+    #info {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 14px;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+    }
+
+    #toolbar {
+      margin-bottom: 22px;
+    }
+
+    #info {
+      margin-top: 22px;
+      font-size: 15px;
+    }
+
+    label,
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    input[type="color"] {
+      width: 44px;
+      height: 36px;
+      padding: 2px;
+      border: 1px solid #9ca3af;
+      border-radius: 8px;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    select,
+    button {
+      min-height: 36px;
+      border: 1px solid #9ca3af;
+      border-radius: 8px;
+      padding: 0 12px;
+      font-size: 14px;
+      background: #ffffff;
+      color: #111827;
+    }
+
+    button {
+      font-weight: 700;
+      cursor: default;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      background: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .canvas-wrapper {
+      display: flex;
+      justify-content: center;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(16, 24px);
+      grid-template-rows: repeat(16, 24px);
+      gap: 1px;
+      padding: 10px;
+      background: #374151;
+      border: 3px solid #111827;
+      border-radius: 12px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .cell {
+      width: 24px;
+      height: 24px;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      transition: background-color 0.15s ease, filter 0.15s ease;
+    }
+
+    .cell:hover {
+      background: #dbeafe;
+      filter: brightness(0.96);
+    }
+
+    #info span {
+      min-width: 20px;
+      display: inline-block;
+      text-align: center;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+<main class="app">
+  <h1>Edytor grafiki pikselowej</h1>
+
+  <div id="toolbar">
+    <label for="color-picker">
+      Kolor
+      <input type="color" id="color-picker" value="#000000" />
+    </label>
+
+    <label for="brush-size">
+      Pędzel
+      <select id="brush-size">
+        <option value="1">1×1</option>
+        <option value="2">2×2</option>
+        <option value="3">3×3</option>
+      </select>
+    </label>
+
+    <button id="eraser-btn" type="button">Gumka</button>
+    <button id="clear-btn" type="button">Wyczyść</button>
+  </div>
+
+  <div class="canvas-wrapper">
+    <div id="grid"></div>
+  </div>
+
+  <div id="info">
+    <div class="info-item">Wiersz: <span id="info-row">–</span></div>
+    <div class="info-item">Kolumna: <span id="info-col">–</span></div>
+    <div class="info-item">Aktywne komórki: <span id="info-count">0</span></div>
+  </div>
+</main>
+
+<script>
+  const grid = document.getElementById('grid');
+  const gridSize = 16;
+
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col < gridSize; col++) {
+      const cell = document.createElement('div');
+
+      cell.classList.add('cell');
+      cell.dataset.row = row;
+      cell.dataset.col = col;
+
+      grid.appendChild(cell);
+    }
+  }
+</script>
+</body>
+</html>
