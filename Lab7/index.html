@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Edytor grafiki pikselowej</title>
   <style>
     * {
@@ -12,8 +12,8 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #eef2ff, #f8fafc);
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #e8eef8, #f7f4ec);
       color: #1f2937;
       display: flex;
       justify-content: center;
@@ -22,16 +22,15 @@
     }
 
     .app {
-      width: 100%;
-      max-width: 760px;
+      width: min(760px, 100%);
       background: #ffffff;
       border-radius: 18px;
-      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      box-shadow: 0 20px 45px rgba(31, 41, 55, 0.16);
       padding: 28px;
     }
 
     h1 {
-      margin: 0 0 22px;
+      margin: 0 0 20px;
       text-align: center;
       font-size: 28px;
       color: #111827;
@@ -41,98 +40,103 @@
     #info {
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       gap: 12px;
-      background: #f1f5f9;
-      border: 1px solid #dbe3ee;
+      padding: 16px;
       border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 18px;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
     }
 
-    #toolbar label,
-    #info .info-item {
+    #toolbar {
+      margin-bottom: 22px;
+    }
+
+    #info {
+      margin-top: 22px;
+      font-size: 15px;
+    }
+
+    label,
+    .info-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 14px;
+      gap: 6px;
       font-weight: 600;
-      color: #334155;
     }
 
-    #color-picker {
-      width: 48px;
+    input[type="color"] {
+      width: 44px;
       height: 36px;
-      border: none;
-      background: transparent;
+      padding: 2px;
+      border: 1px solid #9ca3af;
+      border-radius: 8px;
+      background: #ffffff;
       cursor: pointer;
     }
 
-    #brush-size,
+    select,
     button {
-      height: 36px;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      background: #ffffff;
-      color: #1e293b;
+      min-height: 36px;
+      border: 1px solid #9ca3af;
+      border-radius: 8px;
       padding: 0 12px;
       font-size: 14px;
+      background: #ffffff;
+      color: #111827;
     }
 
     button {
-      cursor: pointer;
       font-weight: 700;
-      transition: background 0.2s, transform 0.2s;
+      cursor: default;
+      transition: background-color 0.2s ease, transform 0.2s ease;
     }
 
     button:hover {
-      background: #e0e7ff;
+      background: #e5e7eb;
       transform: translateY(-1px);
     }
 
-    .canvas-wrap {
+    .canvas-wrapper {
       display: flex;
       justify-content: center;
-      margin: 22px 0;
     }
 
     #grid {
       display: grid;
       grid-template-columns: repeat(16, 24px);
       grid-template-rows: repeat(16, 24px);
-      background: #cbd5e1;
-      border: 3px solid #334155;
-      border-radius: 8px;
-      overflow: hidden;
+      gap: 1px;
+      padding: 10px;
+      background: #374151;
+      border: 3px solid #111827;
+      border-radius: 12px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
     }
 
     .cell {
       width: 24px;
       height: 24px;
       background: #ffffff;
-      border: 1px solid #e2e8f0;
-      transition: filter 0.15s, background 0.15s;
+      border: 1px solid #d1d5db;
+      transition: background-color 0.15s ease, filter 0.15s ease;
     }
 
     .cell:hover {
-      background: #fef3c7;
-      filter: brightness(0.97);
-    }
-
-    #info {
-      margin-bottom: 0;
+      background: #dbeafe;
+      filter: brightness(0.96);
     }
 
     #info span {
-      min-width: 24px;
+      min-width: 20px;
       display: inline-block;
       text-align: center;
-      color: #0f172a;
+      padding: 2px 6px;
+      border-radius: 6px;
       background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      padding: 4px 8px;
+      border: 1px solid #d1d5db;
+      font-weight: 700;
     }
   </style>
 </head>
@@ -140,113 +144,51 @@
 <main class="app">
   <h1>Edytor grafiki pikselowej</h1>
 
-  <div id="toolbar"></div>
+  <div id="toolbar">
+    <label for="color-picker">
+      Kolor
+      <input type="color" id="color-picker" value="#000000" />
+    </label>
 
-  <div class="canvas-wrap">
+    <label for="brush-size">
+      Pędzel
+      <select id="brush-size">
+        <option value="1">1×1</option>
+        <option value="2">2×2</option>
+        <option value="3">3×3</option>
+      </select>
+    </label>
+
+    <button id="eraser-btn" type="button">Gumka</button>
+    <button id="clear-btn" type="button">Wyczyść</button>
+  </div>
+
+  <div class="canvas-wrapper">
     <div id="grid"></div>
   </div>
 
-  <div id="info"></div>
+  <div id="info">
+    <div class="info-item">Wiersz: <span id="info-row">–</span></div>
+    <div class="info-item">Kolumna: <span id="info-col">–</span></div>
+    <div class="info-item">Aktywne komórki: <span id="info-count">0</span></div>
+  </div>
 </main>
 
 <script>
- 
-  const grid = document.getElementById('grid');       // kontener siatki
-  const toolbar = document.getElementById('toolbar'); // pasek narzędzi
-  const info = document.getElementById('info');       // panel informacji
+  const grid = document.getElementById('grid');
+  const gridSize = 16;
 
-  // Rozmiar siatki
-  const GRID_SIZE = 16;
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col < gridSize; col++) {
+      const cell = document.createElement('div');
 
-  // Tworzenie siatki komórek
-  for (let row = 0; row < GRID_SIZE; row++) {
-    for (let col = 0; col < GRID_SIZE; col++) {
-      const cell = document.createElement('div'); // tworzenie komórki
-      cell.className = 'cell';                   // nadanie klasy CSS
-      cell.dataset.row = row;                    // zapis numeru wiersza
-      cell.dataset.col = col;                    // zapis numeru kolumny
-      grid.appendChild(cell);                    // dodanie do siatki
+      cell.classList.add('cell');
+      cell.dataset.row = row;
+      cell.dataset.col = col;
+
+      grid.appendChild(cell);
     }
   }
-
-  // Kolor
-  const colorLabel = document.createElement('label');
-  colorLabel.textContent = 'Kolor:'; // etykieta
-
-  const colorPicker = document.createElement('input');
-  colorPicker.type = 'color';        // input typu color
-  colorPicker.id = 'color-picker';
-  colorPicker.value = '#000000';     // domyślny kolor 
-
-  colorLabel.appendChild(colorPicker); // dodanie inputa do labela
-  toolbar.appendChild(colorLabel);     // dodanie do toolbaru
-
-  // Rozmiar pędzla
-  const brushLabel = document.createElement('label');
-  brushLabel.textContent = 'Rozmiar pędzla:';
-
-  const brushSize = document.createElement('select'); // lista rozwijana
-  brushSize.id = 'brush-size';
-
-  const brushOptions = ['1×1', '2×2', '3×3']; // dostępne rozmiary
-
-  // Dodanie opcji do selecta
-  for (let i = 0; i < brushOptions.length; i++) {
-    const option = document.createElement('option');
-    option.value = brushOptions[i];       // wartość opcji
-    option.textContent = brushOptions[i]; // tekst widoczny
-    brushSize.appendChild(option);
-  }
-
-  brushLabel.appendChild(brushSize);
-  toolbar.appendChild(brushLabel);
-
-  // Gumka
-  const eraserButton = document.createElement('button');
-  eraserButton.id = 'eraser-btn';
-  eraserButton.textContent = 'Gumka'; 
-  toolbar.appendChild(eraserButton);
-
-  // Wyczyść
-  const clearButton = document.createElement('button');
-  clearButton.id = 'clear-btn';
-  clearButton.textContent = 'Wyczyść';
-  toolbar.appendChild(clearButton);
-
-  // Panel informacji
-
-  // Informacja o wierszu
-  const rowInfo = document.createElement('div');
-  rowInfo.className = 'info-item';
-  rowInfo.textContent = 'Wiersz:';
-
-  const infoRow = document.createElement('span');
-  infoRow.id = 'info-row';
-  infoRow.textContent = '–'; 
-  rowInfo.appendChild(infoRow);
-  info.appendChild(rowInfo);
-
-  // Informacja o kolumnie
-  const colInfo = document.createElement('div');
-  colInfo.className = 'info-item';
-  colInfo.textContent = 'Kolumna:';
-
-  const infoCol = document.createElement('span');
-  infoCol.id = 'info-col';
-  infoCol.textContent = '–';
-  colInfo.appendChild(infoCol);
-  info.appendChild(colInfo);
-
-  // Liczba aktywnych komórek
-  const countInfo = document.createElement('div');
-  countInfo.className = 'info-item';
-  countInfo.textContent = 'Aktywne komórki:';
-
-  const infoCount = document.createElement('span');
-  infoCount.id = 'info-count';
-  infoCount.textContent = '0'; 
-  countInfo.appendChild(infoCount);
-  info.appendChild(countInfo);
 </script>
 </body>
 </html>
