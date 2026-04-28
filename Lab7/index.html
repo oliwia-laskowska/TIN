@@ -150,71 +150,83 @@
 </main>
 
 <script>
-  const grid = document.getElementById('grid');
-  const toolbar = document.getElementById('toolbar');
-  const info = document.getElementById('info');
+ 
+  const grid = document.getElementById('grid');       // kontener siatki
+  const toolbar = document.getElementById('toolbar'); // pasek narzędzi
+  const info = document.getElementById('info');       // panel informacji
 
+  // Rozmiar siatki
   const GRID_SIZE = 16;
 
+  // Tworzenie siatki komórek
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col < GRID_SIZE; col++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.dataset.row = row;
-      cell.dataset.col = col;
-      grid.appendChild(cell);
+      const cell = document.createElement('div'); // tworzenie komórki
+      cell.className = 'cell';                   // nadanie klasy CSS
+      cell.dataset.row = row;                    // zapis numeru wiersza
+      cell.dataset.col = col;                    // zapis numeru kolumny
+      grid.appendChild(cell);                    // dodanie do siatki
     }
   }
 
+  // Kolor
   const colorLabel = document.createElement('label');
-  colorLabel.textContent = 'Kolor:';
+  colorLabel.textContent = 'Kolor:'; // etykieta
 
   const colorPicker = document.createElement('input');
-  colorPicker.type = 'color';
+  colorPicker.type = 'color';        // input typu color
   colorPicker.id = 'color-picker';
-  colorPicker.value = '#000000';
+  colorPicker.value = '#000000';     // domyślny kolor 
 
-  colorLabel.appendChild(colorPicker);
-  toolbar.appendChild(colorLabel);
+  colorLabel.appendChild(colorPicker); // dodanie inputa do labela
+  toolbar.appendChild(colorLabel);     // dodanie do toolbaru
 
+  // Rozmiar pędzla
   const brushLabel = document.createElement('label');
   brushLabel.textContent = 'Rozmiar pędzla:';
 
-  const brushSize = document.createElement('select');
+  const brushSize = document.createElement('select'); // lista rozwijana
   brushSize.id = 'brush-size';
 
-  const brushOptions = ['1×1', '2×2', '3×3'];
+  const brushOptions = ['1×1', '2×2', '3×3']; // dostępne rozmiary
 
+  // Dodanie opcji do selecta
   for (let i = 0; i < brushOptions.length; i++) {
     const option = document.createElement('option');
-    option.value = brushOptions[i];
-    option.textContent = brushOptions[i];
+    option.value = brushOptions[i];       // wartość opcji
+    option.textContent = brushOptions[i]; // tekst widoczny
     brushSize.appendChild(option);
   }
 
   brushLabel.appendChild(brushSize);
   toolbar.appendChild(brushLabel);
 
+  // Gumka
   const eraserButton = document.createElement('button');
   eraserButton.id = 'eraser-btn';
-  eraserButton.textContent = 'Gumka';
+  eraserButton.textContent = 'Gumka'; 
   toolbar.appendChild(eraserButton);
 
+  // Wyczyść
   const clearButton = document.createElement('button');
   clearButton.id = 'clear-btn';
   clearButton.textContent = 'Wyczyść';
   toolbar.appendChild(clearButton);
 
+  // Panel informacji
+
+  // Informacja o wierszu
   const rowInfo = document.createElement('div');
   rowInfo.className = 'info-item';
   rowInfo.textContent = 'Wiersz:';
 
   const infoRow = document.createElement('span');
   infoRow.id = 'info-row';
-  infoRow.textContent = '–';
+  infoRow.textContent = '–'; 
   rowInfo.appendChild(infoRow);
   info.appendChild(rowInfo);
 
+  // Informacja o kolumnie
   const colInfo = document.createElement('div');
   colInfo.className = 'info-item';
   colInfo.textContent = 'Kolumna:';
@@ -225,13 +237,14 @@
   colInfo.appendChild(infoCol);
   info.appendChild(colInfo);
 
+  // Liczba aktywnych komórek
   const countInfo = document.createElement('div');
   countInfo.className = 'info-item';
   countInfo.textContent = 'Aktywne komórki:';
 
   const infoCount = document.createElement('span');
   infoCount.id = 'info-count';
-  infoCount.textContent = '0';
+  infoCount.textContent = '0'; 
   countInfo.appendChild(infoCount);
   info.appendChild(countInfo);
 </script>
