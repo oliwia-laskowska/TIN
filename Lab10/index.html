@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Pixel Art Editor</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2ff, #f8fafc);
+      color: #1f2937;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 32px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 920px;
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      padding: 28px;
+    }
+
+    h1 {
+      margin: 0 0 22px;
+      text-align: center;
+      font-size: 28px;
+      color: #111827;
+    }
+
+    #toolbar, #async-panel, #info {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: #f1f5f9;
+      border: 1px solid #dbe3ee;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    label, .info-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    #color-picker {
+      width: 48px;
+      height: 36px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    select, button {
+      height: 36px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #1e293b;
+      padding: 0 12px;
+      font-size: 14px;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+      background: #e0e7ff;
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    button.active {
+      background: #fecaca;
+      border-color: #ef4444;
+      color: #7f1d1d;
+    }
+
+    .palette {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 2px solid #cbd5e1;
+      cursor: pointer;
+    }
+
+    .canvas-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 22px 0;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(var(--grid-size), 24px);
+      grid-template-rows: repeat(var(--grid-size), 24px);
+      background: #cbd5e1;
+      border: 3px solid #334155;
+      border-radius: 8px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .cell {
+      width: 24px;
+      height: 24px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      transition: filter 0.15s, background 0.15s;
+    }
+
+    .cell:hover {
+      background: #fef3c7;
+      filter: brightness(0.97);
+    }
+
+    #info {
+      margin-bottom: 0;
+    }
+
+    #info span, #status, #autosave-status, #time-result {
+      display: inline-block;
+      color: #0f172a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 4px 8px;
+    }
+
+    #status {
+      min-width: 260px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+<main class="app">
+  <h1>Mini Pixel Art Editor</h1>
+
+  <div id="toolbar"></div>
+  <div id="async-panel"></div>
+
+  <div class="canvas-wrap">
+    <div id="grid"></div>
+  </div>
+
+  <div id="info"></div>
+</main>
+
+<script>
+  // pobieram główne elementy z HTML
+  const grid = document.getElementById('grid');
+  const toolbar = document.getElementById('toolbar');
+  const info = document.getElementById('info');
+  const asyncPanel = document.getElementById('async-panel');
+
+  // ustawienia siatki i stałe wartości
+  const GRID_SIZE = 16;
+  const WHITE = '#ffffff';
+  const STORAGE_KEY = 'mini-pixel-editor-state';
+  const API_URL = 'https://jsonplaceholder.typicode.com/posts';
+
+  // gotowe palety kolorów
+  const PALETTES = {
+    warm: {
+      name: 'Ciepła',
+      endpoint: `${API_URL}/1`,
+      baseColors: ['#ef4444', '#f97316', '#facc15', '#7c2d12', '#ffffff']
+    },
+    cold: {
+      name: 'Zimna',
+      endpoint: `${API_URL}/2`,
+      baseColors: ['#2563eb', '#06b6d4', '#22c55e', '#312e81', '#ffffff']
+    },
+    candy: {
+      name: 'Pastelowa',
+      endpoint: `${API_URL}/3`,
+      baseColors: ['#f9a8d4', '#c4b5fd', '#93c5fd', '#86efac', '#ffffff']
+    }
+  };
+
+  // zmienne potrzebne do rysowania
+  let activeColor = '#000000';
+  let brushValue = 1;
+  let isDrawing = false;
+  let isEraser = false;
+  let skipNextClick = false;
+  let debounceTimer = null;
+
+  // ustawiam rozmiar grida w CSS
+  grid.style.setProperty('--grid-size', GRID_SIZE);
+
+  // tworzę komórki siatki
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col < GRID_SIZE; col++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.row = row;
+      cell.dataset.col = col;
+      cell.style.backgroundColor = WHITE;
+      grid.appendChild(cell);
+    }
+  }
+
+  // tworzenie wyboru koloru
+  const colorLabel = document.createElement('label');
+  colorLabel.textContent = 'Kolor:';
+
+  const colorPicker = document.createElement('input');
+  colorPicker.type = 'color';
+  colorPicker.id = 'color-picker';
+  colorPicker.value = activeColor;
+
+  colorLabel.appendChild(colorPicker);
+  toolbar.appendChild(colorLabel);
+
+  // tworzenie wyboru rozmiaru pędzla
+  const brushLabel = document.createElement('label');
+  brushLabel.textContent = 'Rozmiar pędzla:';
+
+  const brushSize = document.createElement('select');
+  brushSize.id = 'brush-size';
+
+  ['1×1', '2×2', '3×3'].forEach(function(text, index) {
+    const option = document.createElement('option');
+    option.value = String(index + 1);
+    option.textContent = text;
+    brushSize.appendChild(option);
+  });
+
+  brushLabel.appendChild(brushSize);
+  toolbar.appendChild(brushLabel);
+
+  // przyciski narzędzi
+  const eraserButton = document.createElement('button');
+  eraserButton.textContent = 'Gumka';
+  toolbar.appendChild(eraserButton);
+
+  const clearButton = document.createElement('button');
+  clearButton.textContent = 'Wyczyść';
+  toolbar.appendChild(clearButton);
+
+  // lista z paletami
+  const paletteSelect = document.createElement('select');
+  Object.keys(PALETTES).forEach(function(key) {
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = PALETTES[key].name;
+    paletteSelect.appendChild(option);
+  });
+
+  // przyciski do async / zapisu / wczytywania
+  const loadPaletteBtn = document.createElement('button');
+  loadPaletteBtn.textContent = 'Załaduj paletę';
+
+  const loadAllParallelBtn = document.createElement('button');
+  loadAllParallelBtn.textContent = '3 palety równolegle';
+
+  const loadAllSequentialBtn = document.createElement('button');
+  loadAllSequentialBtn.textContent = '3 palety sekwencyjnie';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = 'Zapisz';
+
+  const loadBtn = document.createElement('button');
+  loadBtn.textContent = 'Wczytaj';
+
+  // miejsce na kolory palety i status
+  const paletteBox = document.createElement('div');
+  paletteBox.className = 'palette';
+
+  const status = document.createElement('span');
+  status.id = 'status';
+  status.textContent = 'Gotowy';
+
+  const timeResult = document.createElement('span');
+  timeResult.id = 'time-result';
+  timeResult.textContent = 'Czas: –';
+
+  // dodaję elementy do panelu
+  asyncPanel.append(
+          paletteSelect,
+          loadPaletteBtn,
+          loadAllParallelBtn,
+          loadAllSequentialBtn,
+          saveBtn,
+          loadBtn,
+          paletteBox,
+          status,
+          timeResult
+  );
+
+  // informacje o aktualnej komórce i stanie
+  const infoRow = createInfoItem('Wiersz:', '–');
+  const infoCol = createInfoItem('Kolumna:', '–');
+  const infoCount = createInfoItem('Aktywne komórki:', '0');
+  const autoSaveStatus = createInfoItem('Auto-save:', 'oczekuje');
+
+  // funkcja tworząca jeden element informacji
+  function createInfoItem(labelText, valueText) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'info-item';
+    wrapper.textContent = labelText;
+
+    const span = document.createElement('span');
+    span.textContent = valueText;
+
+    wrapper.appendChild(span);
+    info.appendChild(wrapper);
+
+    return span;
+  }
+
+  // blokuję przyciski podczas ładowania
+  function setLoading(isLoading, message) {
+    loadPaletteBtn.disabled = isLoading;
+    loadAllParallelBtn.disabled = isLoading;
+    loadAllSequentialBtn.disabled = isLoading;
+    saveBtn.disabled = isLoading;
+    loadBtn.disabled = isLoading;
+    status.textContent = message;
+  }
+
+  // sprawdzam czy fetch się udał
+  function checkResponse(response) {
+    if (!response.ok) {
+      throw new Error(`Błąd HTTP: ${response.status}`);
+    }
+
+    return response;
+  }
+
+  // sprawdzam czy kliknięto w komórkę
+  function getCellFromEvent(event) {
+    return event.target.classList.contains('cell') ? event.target : null;
+  }
+
+  // wybieram kolor albo gumkę
+  function getCurrentColor() {
+    return isEraser ? WHITE : activeColor;
+  }
+
+  // pobieram konkretną komórkę po wierszu i kolumnie
+  function getCell(row, col) {
+    return grid.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+  }
+
+  // koloruję jedną komórkę
+  function colorSingleCell(cell, color = getCurrentColor()) {
+    if (!cell) return;
+    cell.style.backgroundColor = color;
+  }
+
+  // po zmianie grida aktualizuję licznik i zapis
+  function afterGridChange() {
+    updateActiveCount();
+    debounceAutoSave();
+  }
+
+  // kolorowanie pędzlem, też większym niż 1x1
+  function colorWithBrush(cell) {
+    if (!cell) return;
+
+    const startRow = Number(cell.dataset.row);
+    const startCol = Number(cell.dataset.col);
+
+    for (let row = startRow; row < startRow + brushValue; row++) {
+      for (let col = startCol; col < startCol + brushValue; col++) {
+        if (row < GRID_SIZE && col < GRID_SIZE) {
+          colorSingleCell(getCell(row, col));
+        }
+      }
+    }
+
+    afterGridChange();
+  }
+
+  // podwójne kliknięcie koloruje cały wiersz
+  function fillRow(cell) {
+    if (!cell) return;
+
+    const row = Number(cell.dataset.row);
+
+    for (let col = 0; col < GRID_SIZE; col++) {
+      colorSingleCell(getCell(row, col));
+    }
+
+    afterGridChange();
+  }
+
+  // czyści jedną komórkę
+  function clearCell(cell) {
+    colorSingleCell(cell, WHITE);
+    afterGridChange();
+  }
+
+  // czyści całą planszę
+  function clearGrid() {
+    document.querySelectorAll('.cell').forEach(function(cell) {
+      cell.style.backgroundColor = WHITE;
+    });
+
+    afterGridChange();
+  }
+
+  // pokazuje aktualny wiersz i kolumnę
+  function updateInfo(cell) {
+    if (!cell) return;
+
+    infoRow.textContent = Number(cell.dataset.row) + 1;
+    infoCol.textContent = Number(cell.dataset.col) + 1;
+  }
+
+  // liczy pokolorowane komórki
+  function updateActiveCount() {
+    let count = 0;
+
+    document.querySelectorAll('.cell').forEach(function(cell) {
+      const color = cell.style.backgroundColor;
+
+      if (color !== 'rgb(255, 255, 255)' && color !== WHITE && color !== '') {
+        count++;
+      }
+    });
+
+    infoCount.textContent = count;
+  }
+
+  // włączanie i wyłączanie gumki
+  function toggleEraser() {
+    isEraser = !isEraser;
+    eraserButton.classList.toggle('active', isEraser);
+    eraserButton.textContent = isEraser ? 'Gumka aktywna' : 'Gumka';
+  }
+
+  // zmiana rozmiaru pędzla z klawiatury
+  function setBrushSize(size) {
+    brushValue = size;
+    brushSize.value = String(size);
+  }
+
+  // zapisuję kolory wszystkich komórek do tablicy
+  function getGridState() {
+    return Array.from(document.querySelectorAll('.cell')).map(function(cell) {
+      return cell.style.backgroundColor || WHITE;
+    });
+  }
+
+  // nakładam zapisany stan na planszę
+  function applyGridState(colors) {
+    const cells = document.querySelectorAll('.cell');
+
+    cells.forEach(function(cell, index) {
+      cell.style.backgroundColor = colors[index] || WHITE;
+    });
+
+    updateActiveCount();
+  }
+
+  // zapis do localStorage
+  function saveToLocalStorage() {
+    const state = {
+      gridSize: GRID_SIZE,
+      colors: getGridState(),
+      savedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  // odczyt z localStorage
+  function loadFromLocalStorage() {
+    const rawData = localStorage.getItem(STORAGE_KEY);
+
+    if (!rawData) {
+      throw new Error('Brak zapisanego stanu w localStorage.');
+    }
+
+    const state = JSON.parse(rawData);
+    applyGridState(state.colors);
+  }
+
+  // automatyczny zapis z opóźnieniem
+  function debounceAutoSave() {
+    autoSaveStatus.textContent = 'czekam...';
+
+    clearTimeout(debounceTimer);
+
+    debounceTimer = setTimeout(function() {
+      saveToLocalStorage();
+      autoSaveStatus.textContent = 'zapisano';
+    }, 700);
+  }
+
+  // wyświetlam paletę kolorów
+  function renderPalette(colors) {
+    paletteBox.innerHTML = '';
+
+    colors.forEach(function(color) {
+      const swatch = document.createElement('button');
+      swatch.className = 'swatch';
+      swatch.style.backgroundColor = color;
+      swatch.title = color;
+
+      // po kliknięciu w kolor ustawiam go jako aktywny
+      swatch.onclick = function() {
+        activeColor = color;
+        colorPicker.value = color;
+        isEraser = false;
+        eraserButton.classList.remove('active');
+        eraserButton.textContent = 'Gumka';
+      };
+
+      paletteBox.appendChild(swatch);
+    });
+  }
+
+  // z danych z API wybieram paletę z obiektu
+  function generatePaletteFromApiData(data, paletteKey) {
+    console.log('Dane z API jako wejście:', data);
+    return PALETTES[paletteKey].baseColors;
+  }
+
+  // pobieranie palety z API
+  async function fetchPalette(paletteKey) {
+    const response = await fetch(PALETTES[paletteKey].endpoint);
+    checkResponse(response);
+
+    const data = await response.json();
+
+    return generatePaletteFromApiData(data, paletteKey);
+  }
+
+  // ładowanie jednej wybranej palety
+  async function loadSelectedPalette() {
+    setLoading(true, 'Ładowanie palety...');
+
+    try {
+      const colors = await fetchPalette(paletteSelect.value);
+      renderPalette(colors);
+      status.textContent = 'Paleta załadowana';
+    } catch (error) {
+      status.textContent = `Błąd: ${error.message}`;
+    } finally {
+      setLoading(false, status.textContent);
+    }
+  }
+
+  // zapis lokalny + przykładowy POST
+  async function saveStateAsyncAwait() {
+    saveToLocalStorage();
+
+    setLoading(true, 'Zapisywanie...');
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          title: 'pixel-editor-state',
+          body: getGridState(),
+          userId: 1
+        }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8'
+        }
+      });
+
+      checkResponse(response);
+
+      await response.json();
+
+      status.textContent = 'Stan zapisany w localStorage. POST wykonany ćwiczeniowo.';
+    } catch (error) {
+      status.textContent = `Błąd zapisu HTTP: ${error.message}`;
+    } finally {
+      setLoading(false, status.textContent);
+    }
+  }
+
+  // wczytywanie z użyciem then/catch
+  function loadStateThenCatch() {
+    setLoading(true, 'Wczytywanie...');
+
+    fetch(`${API_URL}/1`)
+            .then(checkResponse)
+            .then(function(response) {
+              return response.json();
+            })
+            .then(function() {
+              loadFromLocalStorage();
+              status.textContent = 'Stan wczytany z localStorage. GET wykonany ćwiczeniowo.';
+            })
+            .catch(function(error) {
+              status.textContent = `Błąd wczytywania: ${error.message}`;
+            })
+            .finally(function() {
+              setLoading(false, status.textContent);
+            });
+  }
+
+  // pobieranie 3 palet naraz
+  async function loadAllPalettesParallel() {
+    setLoading(true, 'Ładowanie równoległe...');
+
+    const start = performance.now();
+
+    try {
+      const results = await Promise.all([
+        fetchPalette('warm'),
+        fetchPalette('cold'),
+        fetchPalette('candy')
+      ]);
+
+      renderPalette(results.flat());
+      const end = performance.now();
+
+      timeResult.textContent = `Równolegle: ${(end - start).toFixed(2)} ms`;
+      status.textContent = 'Załadowano 3 palety przez Promise.all';
+    } catch (error) {
+      status.textContent = `Błąd: ${error.message}`;
+    } finally {
+      setLoading(false, status.textContent);
+    }
+  }
+
+  // pobieranie 3 palet po kolei
+  async function loadAllPalettesSequential() {
+    setLoading(true, 'Ładowanie sekwencyjne...');
+
+    const start = performance.now();
+
+    try {
+      const warm = await fetchPalette('warm');
+      const cold = await fetchPalette('cold');
+      const candy = await fetchPalette('candy');
+
+      renderPalette([...warm, ...cold, ...candy]);
+
+      const end = performance.now();
+
+      timeResult.textContent = `Sekwencyjnie: ${(end - start).toFixed(2)} ms`;
+      status.textContent = 'Załadowano 3 palety jedna po drugiej';
+    } catch (error) {
+      status.textContent = `Błąd: ${error.message}`;
+    } finally {
+      setLoading(false, status.textContent);
+    }
+  }
+
+  // rysowanie po kliknięciu i przeciąganiu
+  grid.addEventListener('mousedown', function(event) {
+    const cell = getCellFromEvent(event);
+    if (!cell) return;
+
+    isDrawing = true;
+    skipNextClick = true;
+    colorWithBrush(cell);
+  });
+
+  // rysowanie podczas przesuwania myszką
+  grid.addEventListener('mousemove', function(event) {
+    const cell = getCellFromEvent(event);
+    if (!cell) return;
+
+    if (isDrawing) {
+      colorWithBrush(cell);
+    }
+  });
+
+  // pokazuje info po najechaniu na komórkę
+  grid.addEventListener('mouseover', function(event) {
+    updateInfo(getCellFromEvent(event));
+  });
+
+  // podwójny klik koloruje cały wiersz
+  grid.addEventListener('dblclick', function(event) {
+    fillRow(getCellFromEvent(event));
+  });
+
+  // prawy klik czyści komórkę
+  grid.addEventListener('contextmenu', function(event) {
+    event.preventDefault();
+    clearCell(getCellFromEvent(event));
+  });
+
+  // po puszczeniu myszy kończę rysowanie
+  document.addEventListener('mouseup', function() {
+    isDrawing = false;
+  });
+
+  // skróty klawiaturowe
+  document.addEventListener('keydown', function(event) {
+    const key = event.key.toLowerCase();
+
+    if (key === 'e') toggleEraser();
+    if (key === 'c') clearGrid();
+    if (key === '1') setBrushSize(1);
+    if (key === '2') setBrushSize(2);
+    if (key === '3') setBrushSize(3);
+  });
+
+  // zwykłe kliknięcie koloruje jedną komórkę
+  grid.onclick = function(event) {
+    const cell = getCellFromEvent(event);
+    if (!cell) return;
+
+    if (skipNextClick) {
+      skipNextClick = false;
+      return;
+    }
+
+    colorSingleCell(cell);
+    afterGridChange();
+  };
+
+  // zmiana aktywnego koloru
+  colorPicker.oninput = function() {
+    activeColor = colorPicker.value;
+  };
+
+  // zmiana rozmiaru pędzla
+  brushSize.onchange = function() {
+    brushValue = Number(brushSize.value);
+  };
+
+  //  funkcje pod przyciski
+  eraserButton.onclick = toggleEraser;
+  clearButton.onclick = clearGrid;
+
+  loadPaletteBtn.onclick = loadSelectedPalette;
+  loadAllParallelBtn.onclick = loadAllPalettesParallel;
+  loadAllSequentialBtn.onclick = loadAllPalettesSequential;
+  saveBtn.onclick = saveStateAsyncAwait;
+  loadBtn.onclick = loadStateThenCatch;
+
+  // paleta startowa
+  renderPalette(['#000000', '#ef4444', '#2563eb', '#22c55e', '#ffffff']);
+</script>
+</body>
+</html>
