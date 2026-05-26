@@ -1,0 +1,21 @@
+{
+  "name": "pixel-editor-node-backend",
+  "version": "1.0.0",
+  "description": "Mini Pixel Art Editor z własnym backendem HTTP w Node.js bez frameworków.",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js"
+  },
+  "dependencies": {
+    "nanoid": "^5.1.5",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

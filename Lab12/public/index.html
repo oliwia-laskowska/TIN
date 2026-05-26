@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Pixel Art Editor</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2ff, #f8fafc);
+      color: #1f2937;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 32px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 920px;
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+      padding: 28px;
+    }
+
+    h1 {
+      margin: 0 0 22px;
+      text-align: center;
+      font-size: 28px;
+      color: #111827;
+    }
+
+    #toolbar, #async-panel, #info {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: #f1f5f9;
+      border: 1px solid #dbe3ee;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    label, .info-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    #color-picker {
+      width: 48px;
+      height: 36px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    select, button {
+      height: 36px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #1e293b;
+      padding: 0 12px;
+      font-size: 14px;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+      background: #e0e7ff;
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    button.active {
+      background: #fecaca;
+      border-color: #ef4444;
+      color: #7f1d1d;
+    }
+
+    .palette {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 2px solid #cbd5e1;
+      cursor: pointer;
+    }
+
+    .canvas-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 22px 0;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(var(--grid-size), 24px);
+      grid-template-rows: repeat(var(--grid-size), 24px);
+      background: #cbd5e1;
+      border: 3px solid #334155;
+      border-radius: 8px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .cell {
+      width: 24px;
+      height: 24px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      transition: filter 0.15s, background 0.15s;
+    }
+
+    .cell:hover {
+      background: #fef3c7;
+      filter: brightness(0.97);
+    }
+
+    #info {
+      margin-bottom: 0;
+    }
+
+    #info span, #status, #autosave-status, #time-result {
+      display: inline-block;
+      color: #0f172a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 4px 8px;
+    }
+
+    #status {
+      min-width: 260px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+<main class="app">
+  <h1>Mini Pixel Art Editor</h1>
+
+  <div id="toolbar"></div>
+  <div id="async-panel"></div>
+
+  <div class="canvas-wrap">
+    <div id="grid"></div>
+  </div>
+
+  <div id="info"></div>
+</main>
+
+<script>
+  const grid = document.getElementById('grid');
+  const toolbar = document.getElementById('toolbar');
+  const info = document.getElementById('info');
+  const asyncPanel = document.getElementById('async-panel');
+
+  const GRID_SIZE = 16;
+  const WHITE = '#ffffff';
+  const API_BASE = 'http://localhost:3000/api';
+  const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
+  const STORAGE_KEY = 'mini-pixel-editor-state';
+  const CLIENT_NICK_KEY = 'mini-pixel-editor-nick';
+
+  const PALETTES = {
+    warm: { name: 'Ciepła', endpoint: `${API_BASE}/palettes/warm` },
+    cold: { name: 'Zimna', endpoint: `${API_BASE}/palettes/cold` },
+    candy: { name: 'Pastelowa', endpoint: `${API_BASE}/palettes/candy` }
+  };
+
+  let activeColor = '#000000';
+  let brushValue = 1;
+  let isDrawing = false;
+  let isEraser = false;
+  let skipNextClick = false;
+  let debounceTimer = null;
+  let socket = null;
+  let reconnectAttempt = 0;
+  let reconnectTimer = null;
+  let clientKeepaliveTimer = null;
+  let awaitingPong = false;
+  let suppressNextReconnect = false;
+  let nick = localStorage.getItem(CLIENT_NICK_KEY) || prompt('Podaj nick do współpracy:') || 'Gość';
+
+  localStorage.setItem(CLIENT_NICK_KEY, nick);
+  grid.style.setProperty('--grid-size', GRID_SIZE);
+
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col < GRID_SIZE; col++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.row = row;
+      cell.dataset.col = col;
+      cell.style.backgroundColor = WHITE;
+      grid.appendChild(cell);
+    }
+  }
+
+  const colorLabel = document.createElement('label');
+  colorLabel.textContent = 'Kolor:';
+  const colorPicker = document.createElement('input');
+  colorPicker.type = 'color';
+  colorPicker.id = 'color-picker';
+  colorPicker.value = activeColor;
+  colorLabel.appendChild(colorPicker);
+  toolbar.appendChild(colorLabel);
+
+  const brushLabel = document.createElement('label');
+  brushLabel.textContent = 'Rozmiar pędzla:';
+  const brushSize = document.createElement('select');
+  brushSize.id = 'brush-size';
+  ['1×1', '2×2', '3×3'].forEach(function(text, index) {
+    const option = document.createElement('option');
+    option.value = String(index + 1);
+    option.textContent = text;
+    brushSize.appendChild(option);
+  });
+  brushLabel.appendChild(brushSize);
+  toolbar.appendChild(brushLabel);
+
+  const eraserButton = document.createElement('button');
+  eraserButton.textContent = 'Gumka';
+  toolbar.appendChild(eraserButton);
+
+  const clearButton = document.createElement('button');
+  clearButton.textContent = 'Wyczyść';
+  toolbar.appendChild(clearButton);
+
+  const paletteSelect = document.createElement('select');
+  Object.keys(PALETTES).forEach(function(key) {
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = PALETTES[key].name;
+    paletteSelect.appendChild(option);
+  });
+
+  const loadPaletteBtn = document.createElement('button');
+  loadPaletteBtn.textContent = 'Załaduj paletę';
+  const loadAllParallelBtn = document.createElement('button');
+  loadAllParallelBtn.textContent = '3 palety równolegle';
+  const reconnectBtn = document.createElement('button');
+  reconnectBtn.textContent = 'Połącz ponownie';
+
+  const saveServerBtn = document.createElement('button');
+  saveServerBtn.textContent = 'Zapisz na serwerze';
+
+  const refreshImagesBtn = document.createElement('button');
+  refreshImagesBtn.textContent = 'Odśwież zapisane';
+
+  const savedImagesSelect = document.createElement('select');
+  const emptyImageOption = document.createElement('option');
+  emptyImageOption.value = '';
+  emptyImageOption.textContent = 'Brak zapisanych obrazków';
+  savedImagesSelect.appendChild(emptyImageOption);
+
+  const loadImageBtn = document.createElement('button');
+  loadImageBtn.textContent = 'Wczytaj obrazek';
+
+  const deleteImageBtn = document.createElement('button');
+  deleteImageBtn.textContent = 'Usuń obrazek';
+
+  const paletteBox = document.createElement('div');
+  paletteBox.className = 'palette';
+  const status = document.createElement('span');
+  status.id = 'status';
+  status.textContent = 'Łączenie WebSocket...';
+  const timeResult = document.createElement('span');
+  timeResult.id = 'time-result';
+  timeResult.textContent = 'Czas: –';
+
+  asyncPanel.append(
+    paletteSelect,
+    loadPaletteBtn,
+    loadAllParallelBtn,
+    reconnectBtn,
+    saveServerBtn,
+    refreshImagesBtn,
+    savedImagesSelect,
+    loadImageBtn,
+    deleteImageBtn,
+    paletteBox,
+    status,
+    timeResult
+  );
+
+  const infoRow = createInfoItem('Wiersz:', '–');
+  const infoCol = createInfoItem('Kolumna:', '–');
+  const infoCount = createInfoItem('Aktywne komórki:', '0');
+  const autoSaveStatus = createInfoItem('Auto-save:', 'oczekuje');
+  const nickInfo = createInfoItem('Nick:', nick);
+  const connectionInfo = createInfoItem('Połączenie:', 'łączenie');
+
+  const usersWrapper = document.createElement('div');
+  usersWrapper.className = 'info-item';
+  usersWrapper.textContent = 'Online:';
+  const usersList = document.createElement('span');
+  usersList.textContent = '–';
+  usersWrapper.appendChild(usersList);
+  info.appendChild(usersWrapper);
+
+  function createInfoItem(labelText, valueText) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'info-item';
+    wrapper.textContent = labelText;
+    const span = document.createElement('span');
+    span.textContent = valueText;
+    wrapper.appendChild(span);
+    info.appendChild(wrapper);
+    return span;
+  }
+
+  function setConnectionState(text) {
+    connectionInfo.textContent = text;
+    status.textContent = text;
+  }
+
+  function safeSend(type, payload = {}) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ type, payload }));
+      return true;
+    }
+
+    status.textContent = 'Brak połączenia WebSocket — zmiana lokalna, czekam na reconnect.';
+    return false;
+  }
+
+  function connectWebSocket() {
+    clearTimeout(reconnectTimer);
+    stopClientKeepalive();
+
+    if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+      suppressNextReconnect = true;
+      socket.close(1000, 'Ręczne ponowne połączenie.');
+    }
+
+    setConnectionState('Łączenie WebSocket...');
+    socket = new WebSocket(WS_URL);
+
+    socket.addEventListener('open', function() {
+      reconnectAttempt = 0;
+      awaitingPong = false;
+      setConnectionState('Połączono');
+      safeSend('hello', { nick });
+      startClientKeepalive();
+    });
+
+    socket.addEventListener('message', function(event) {
+      dispatchServerMessage(event.data);
+    });
+
+    socket.addEventListener('close', function() {
+      stopClientKeepalive();
+
+      if (suppressNextReconnect) {
+        suppressNextReconnect = false;
+        return;
+      }
+
+      setConnectionState('Rozłączono — ponawiam połączenie...');
+      scheduleReconnect();
+    });
+
+    socket.addEventListener('error', function() {
+      setConnectionState('Błąd WebSocket');
+    });
+  }
+
+  function scheduleReconnect() {
+    reconnectAttempt += 1;
+    const delay = Math.min(1000 * 2 ** (reconnectAttempt - 1), 10000);
+    status.textContent = `Reconnect za ${(delay / 1000).toFixed(0)} s...`;
+    reconnectTimer = setTimeout(connectWebSocket, delay);
+  }
+
+  function startClientKeepalive() {
+    clientKeepaliveTimer = setInterval(function() {
+      if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+      if (awaitingPong) {
+        socket.close(4001, 'Brak odpowiedzi pong od serwera.');
+        return;
+      }
+
+      awaitingPong = true;
+      safeSend('ping', { time: Date.now() });
+    }, 10000);
+  }
+
+  function stopClientKeepalive() {
+    clearInterval(clientKeepaliveTimer);
+    awaitingPong = false;
+  }
+
+  const serverHandlers = {
+    snapshot(payload) {
+      applyGridState(payload.colors || []);
+      renderUsers(payload.users || []);
+      status.textContent = 'Odebrano pełny stan siatki.';
+    },
+    users(payload) {
+      renderUsers(payload.users || []);
+    },
+    cell_update(payload) {
+      const cell = getCell(Number(payload.row), Number(payload.col));
+      colorSingleCell(cell, payload.color);
+      afterGridChange(false);
+    },
+    clear_grid(payload) {
+      clearGridLocal(payload.color || WHITE, false);
+    },
+    ping() {
+      safeSend('pong', { time: Date.now() });
+    },
+    pong() {
+      awaitingPong = false;
+    },
+    error(payload) {
+      status.textContent = `Błąd serwera: ${payload.message}`;
+    }
+  };
+
+  function dispatchServerMessage(raw) {
+    let message;
+
+    try {
+      message = JSON.parse(raw);
+    } catch {
+      status.textContent = 'Serwer wysłał niepoprawny JSON.';
+      safeSend('error', { message: 'Klient odebrał niepoprawny JSON od serwera.' });
+      return;
+    }
+
+    if (!message || typeof message.type !== 'string') {
+      status.textContent = 'Wiadomość z serwera nie ma pola type.';
+      safeSend('error', { message: 'Wiadomość z serwera nie ma pola type.' });
+      return;
+    }
+
+    const handler = serverHandlers[message.type];
+
+    if (!handler) {
+      status.textContent = `Nieznany typ wiadomości z serwera: ${message.type}`;
+      safeSend('error', { message: `Nieznany typ wiadomości z serwera: ${message.type}` });
+      return;
+    }
+
+    handler(message.payload || {});
+  }
+
+  function renderUsers(users) {
+    usersList.textContent = users.map(function(user) {
+      return user.nick;
+    }).join(', ') || '–';
+  }
+
+  function checkResponse(response) {
+    if (!response.ok) throw new Error(`Błąd HTTP: ${response.status}`);
+    return response;
+  }
+
+  function getCellFromEvent(event) {
+    return event.target.classList.contains('cell') ? event.target : null;
+  }
+
+  function getCurrentColor() {
+    return isEraser ? WHITE : activeColor;
+  }
+
+  function getCell(row, col) {
+    return grid.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+  }
+
+  function colorSingleCell(cell, color = getCurrentColor()) {
+    if (!cell) return;
+    cell.style.backgroundColor = color;
+  }
+
+  function sendCellUpdate(cell) {
+    safeSend('cell_update', {
+      row: Number(cell.dataset.row),
+      col: Number(cell.dataset.col),
+      color: cell.style.backgroundColor || getCurrentColor()
+    });
+  }
+
+  function afterGridChange(shouldAutosave = true) {
+    updateActiveCount();
+    if (shouldAutosave) debounceAutoSave();
+  }
+
+  function colorWithBrush(cell) {
+    if (!cell) return;
+    const startRow = Number(cell.dataset.row);
+    const startCol = Number(cell.dataset.col);
+
+    for (let row = startRow; row < startRow + brushValue; row++) {
+      for (let col = startCol; col < startCol + brushValue; col++) {
+        if (row < GRID_SIZE && col < GRID_SIZE) {
+          const target = getCell(row, col);
+          colorSingleCell(target);
+          sendCellUpdate(target);
+        }
+      }
+    }
+
+    afterGridChange();
+  }
+
+  function fillRow(cell) {
+    if (!cell) return;
+    const row = Number(cell.dataset.row);
+
+    for (let col = 0; col < GRID_SIZE; col++) {
+      const target = getCell(row, col);
+      colorSingleCell(target);
+      sendCellUpdate(target);
+    }
+
+    afterGridChange();
+  }
+
+  function clearCell(cell) {
+    if (!cell) return;
+    colorSingleCell(cell, WHITE);
+    sendCellUpdate(cell);
+    afterGridChange();
+  }
+
+  function clearGridLocal(color = WHITE, shouldAutosave = true) {
+    document.querySelectorAll('.cell').forEach(function(cell) {
+      cell.style.backgroundColor = color;
+    });
+    afterGridChange(shouldAutosave);
+  }
+
+  function clearGrid() {
+    clearGridLocal(WHITE);
+    safeSend('clear_grid');
+  }
+
+  function updateInfo(cell) {
+    if (!cell) return;
+    infoRow.textContent = Number(cell.dataset.row) + 1;
+    infoCol.textContent = Number(cell.dataset.col) + 1;
+  }
+
+  function updateActiveCount() {
+    let count = 0;
+    document.querySelectorAll('.cell').forEach(function(cell) {
+      const color = cell.style.backgroundColor;
+      if (color !== 'rgb(255, 255, 255)' && color !== WHITE && color !== '') count++;
+    });
+    infoCount.textContent = count;
+  }
+
+  function toggleEraser() {
+    isEraser = !isEraser;
+    eraserButton.classList.toggle('active', isEraser);
+    eraserButton.textContent = isEraser ? 'Gumka aktywna' : 'Gumka';
+  }
+
+  function setBrushSize(size) {
+    brushValue = size;
+    brushSize.value = String(size);
+  }
+
+  function getGridState() {
+    return Array.from(document.querySelectorAll('.cell')).map(function(cell) {
+      return cell.style.backgroundColor || WHITE;
+    });
+  }
+
+  function broadcastCurrentGridState() {
+    document.querySelectorAll('.cell').forEach(function(cell) {
+      sendCellUpdate(cell);
+    });
+  }
+
+  function applyGridState(colors) {
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach(function(cell, index) {
+      cell.style.backgroundColor = colors[index] || WHITE;
+    });
+    updateActiveCount();
+  }
+
+  async function refreshSavedImages() {
+    status.textContent = 'Pobieranie zapisanych obrazków...';
+
+    try {
+      const response = await fetch(`${API_BASE}/images`);
+      checkResponse(response);
+      const images = await response.json();
+
+      savedImagesSelect.innerHTML = '';
+
+      if (!images.length) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'Brak zapisanych obrazków';
+        savedImagesSelect.appendChild(option);
+        status.textContent = 'Brak zapisanych obrazków na serwerze.';
+        return;
+      }
+
+      images.forEach(function(image) {
+        const option = document.createElement('option');
+        option.value = image.id;
+        option.textContent = `${image.title || 'bez tytułu'} (${image.id})`;
+        savedImagesSelect.appendChild(option);
+      });
+
+      status.textContent = `Znaleziono zapisane obrazki: ${images.length}`;
+    } catch (error) {
+      status.textContent = `Błąd listy obrazków: ${error.message}`;
+    }
+  }
+
+  async function saveImageToServer() {
+    status.textContent = 'Zapisywanie obrazka na serwerze...';
+
+    try {
+      const response = await fetch(`${API_BASE}/images`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `pixel-editor-state-${new Date().toISOString()}`,
+          gridSize: GRID_SIZE,
+          colors: getGridState()
+        })
+      });
+
+      checkResponse(response);
+      const saved = await response.json();
+      status.textContent = `Zapisano obrazek: ${saved.id}`;
+      await refreshSavedImages();
+      savedImagesSelect.value = saved.id;
+    } catch (error) {
+      status.textContent = `Błąd zapisu: ${error.message}`;
+    }
+  }
+
+  async function loadSelectedImageFromServer() {
+    const imageId = savedImagesSelect.value;
+
+    if (!imageId) {
+      status.textContent = 'Wybierz obrazek do wczytania.';
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/images/${encodeURIComponent(imageId)}`);
+      checkResponse(response);
+      const image = await response.json();
+      applyGridState(image.colors || []);
+      broadcastCurrentGridState();
+      debounceAutoSave();
+      status.textContent = `Wczytano obrazek i zsynchronizowano z innymi: ${image.id}`;
+    } catch (error) {
+      status.textContent = `Błąd wczytywania: ${error.message}`;
+    }
+  }
+
+  async function deleteSelectedImageFromServer() {
+    const imageId = savedImagesSelect.value;
+
+    if (!imageId) {
+      status.textContent = 'Wybierz obrazek do usunięcia.';
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/images/${encodeURIComponent(imageId)}`, {
+        method: 'DELETE'
+      });
+
+      checkResponse(response);
+      status.textContent = `Usunięto obrazek: ${imageId}`;
+      await refreshSavedImages();
+    } catch (error) {
+      status.textContent = `Błąd usuwania: ${error.message}`;
+    }
+  }
+
+  function saveToLocalStorage() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      gridSize: GRID_SIZE,
+      colors: getGridState(),
+      savedAt: new Date().toISOString()
+    }));
+  }
+
+  function debounceAutoSave() {
+    autoSaveStatus.textContent = 'czekam...';
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function() {
+      saveToLocalStorage();
+      autoSaveStatus.textContent = 'zapisano';
+    }, 700);
+  }
+
+  function renderPalette(colors) {
+    paletteBox.innerHTML = '';
+    colors.forEach(function(color) {
+      const swatch = document.createElement('button');
+      swatch.className = 'swatch';
+      swatch.style.backgroundColor = color;
+      swatch.title = color;
+      swatch.onclick = function() {
+        activeColor = color;
+        colorPicker.value = color;
+        isEraser = false;
+        eraserButton.classList.remove('active');
+        eraserButton.textContent = 'Gumka';
+      };
+      paletteBox.appendChild(swatch);
+    });
+  }
+
+  async function fetchPalette(paletteKey) {
+    const response = await fetch(PALETTES[paletteKey].endpoint);
+    checkResponse(response);
+    const data = await response.json();
+    return data.colors;
+  }
+
+  async function loadSelectedPalette() {
+    status.textContent = 'Ładowanie palety...';
+    try {
+      renderPalette(await fetchPalette(paletteSelect.value));
+      status.textContent = 'Paleta załadowana';
+    } catch (error) {
+      status.textContent = `Błąd: ${error.message}`;
+    }
+  }
+
+  async function loadAllPalettesParallel() {
+    status.textContent = 'Ładowanie równoległe...';
+    const start = performance.now();
+
+    try {
+      const results = await Promise.all([
+        fetchPalette('warm'),
+        fetchPalette('cold'),
+        fetchPalette('candy')
+      ]);
+      renderPalette(results.flat());
+      timeResult.textContent = `Promise.all: ${(performance.now() - start).toFixed(2)} ms`;
+      status.textContent = 'Załadowano 3 palety przez Promise.all';
+    } catch (error) {
+      status.textContent = `Błąd: ${error.message}`;
+    }
+  }
+
+  grid.addEventListener('mousedown', function(event) {
+    const cell = getCellFromEvent(event);
+    if (!cell) return;
+    isDrawing = true;
+    skipNextClick = true;
+    colorWithBrush(cell);
+  });
+
+  grid.addEventListener('mousemove', function(event) {
+    const cell = getCellFromEvent(event);
+    if (!cell) return;
+    if (isDrawing) colorWithBrush(cell);
+  });
+
+  grid.addEventListener('mouseover', function(event) {
+    updateInfo(getCellFromEvent(event));
+  });
+
+  grid.addEventListener('dblclick', function(event) {
+    fillRow(getCellFromEvent(event));
+  });
+
+  grid.addEventListener('contextmenu', function(event) {
+    event.preventDefault();
+    clearCell(getCellFromEvent(event));
+  });
+
+  document.addEventListener('mouseup', function() {
+    isDrawing = false;
+  });
+
+  document.addEventListener('keydown', function(event) {
+    const key = event.key.toLowerCase();
+    if (key === 'e') toggleEraser();
+    if (key === 'c') clearGrid();
+    if (key === '1') setBrushSize(1);
+    if (key === '2') setBrushSize(2);
+    if (key === '3') setBrushSize(3);
+  });
+
+  grid.onclick = function(event) {
+    const cell = getCellFromEvent(event);
+    if (!cell) return;
+
+    if (skipNextClick) {
+      skipNextClick = false;
+      return;
+    }
+
+    colorSingleCell(cell);
+    sendCellUpdate(cell);
+    afterGridChange();
+  };
+
+  colorPicker.oninput = function() {
+    activeColor = colorPicker.value;
+  };
+
+  brushSize.onchange = function() {
+    brushValue = Number(brushSize.value);
+  };
+
+  eraserButton.onclick = toggleEraser;
+  clearButton.onclick = clearGrid;
+  loadPaletteBtn.onclick = loadSelectedPalette;
+  loadAllParallelBtn.onclick = loadAllPalettesParallel;
+  reconnectBtn.onclick = connectWebSocket;
+  saveServerBtn.onclick = saveImageToServer;
+  refreshImagesBtn.onclick = refreshSavedImages;
+  loadImageBtn.onclick = loadSelectedImageFromServer;
+  deleteImageBtn.onclick = deleteSelectedImageFromServer;
+
+  renderPalette(['#000000', '#ef4444', '#2563eb', '#22c55e', '#ffffff']);
+  refreshSavedImages();
+  connectWebSocket();
+</script>
+</body>
+</html>
